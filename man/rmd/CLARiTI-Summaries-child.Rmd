@@ -33,14 +33,6 @@ scale_fill_discrete <-
 
 # Organize data
 
-Then for cognition, you could use the harmonized cognitive scores from Tim's group.  Those are here. 
-
-However, it's possible there is a lot of missingness in Tim's harmonized scores.  If so, then you could use individual tests from the larger UDS file.
-
-1.	PHC_MEM 		Harmonized Composite Memory Score 
-2.	PHC_EXF		Harmonized Composite Executive Function Score 
-3.	PHC_LAN		Harmonized Composite Language Score
-
 ```{r}
 # For hippocampus volume from SCAN
 dd <- investigator_scan_mrisbm_nacc66 %>%

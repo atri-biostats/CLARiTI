@@ -197,7 +197,7 @@ ggplot(aes(x=Age, y=value, color=RACE)) +
 
 # ComBat Harmonization of tau PET (tracers)
 
-```{r}
+```{r tau-PET-ComBat}
 summary(tau_PET_fit)
 ggplot(dd %>% filter(!is.na(Tau_PET_ComBat)), 
   aes(x = Tau_PET, y = Tau_PET_ComBat, color = Tau_TRACER)) +

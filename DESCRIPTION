@@ -1,0 +1,32 @@
+Package: CLARiTI
+Type: Package
+Title: CLARiTI Study Package
+Description: CLARiTI is a data package containing full CLARiTI dataset.
+Version: 0.1.0.1
+Authors@R: person("ATRI Biostatistics", email = "biostat_request@atrihub.io",
+  role = c("aut", "cre"))
+URL: 
+    https://atri-biostats.github.io/CLARiTI,
+    https://github.com/atri-biostats/CLARiTI
+License: Copyright 2025
+Encoding: UTF-8
+LazyData: false
+LazyDataCompression: bzip2
+RoxygenNote: 7.3.2
+Collate:
+    'data.R'
+    'CLARiTI-package.R'
+    'ComBat.R'
+Imports:
+    rmarkdown
+Suggests: 
+    knitr,
+    tidyverse,
+    arsenal,
+    ggplot2,
+    ggsci,
+    tidyr,
+    dplyr
+VignetteBuilder: knitr
+Depends: 
+    R (>= 3.5.0)

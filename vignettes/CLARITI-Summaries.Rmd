@@ -1,0 +1,22 @@
+---
+title: "CLARiTI Summaries"
+author: "ATRI Biostatistics"
+output:   
+  rmarkdown::html_vignette:
+    toc: true
+bibliography: references.bib  
+urlcolor: blue
+vignette: >
+  %\VignetteIndexEntry{HABS-HD Summaries}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The **Consortium for Clarity in ADRD Research Through Imaging (CLARiTI)** [@mormino2025consortium] leverages existing ADRC infrastructure to integrate standardized imaging and plasma collection to characterize mixed pathologies and use community-engaged research methods to ensure that ≥ 25% of the sample is from underrepresented populations (e.g., ethnoculturally minoritized, low education). 
+
+The code below demonstrates how to use data in the `CLARITI` package and @R to derive some basic summaries.
+
+```{r, child='../man/rmd/CLARiTI-Summaries-child.Rmd'}
+```
+
+# References

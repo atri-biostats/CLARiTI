@@ -1,0 +1,214 @@
+
+```{r, include = FALSE}
+library(CLARiTI)
+library(arsenal)
+library(ggplot2)
+library(tidyverse)
+library(nlme)
+
+data(investigator_scan_mrisbm_nacc66)
+data(investigator_scan_taupetnpdka_nacc66)
+data(investigator_scan_amyloidpetgaain_nacc66)
+data(NACC_ADSP_PHC_Cognition_2024)
+data(investigator_ftldlbd_nacc66)
+
+knitr::opts_chunk$set(echo = TRUE,
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8, 
+  fig.height = 8 / 1.6, 
+  out.width = "100%",
+  cache = FALSE
+)
+
+options(digits = 2, width = 150)
+
+theme_set(theme_minimal())
+
+scale_colour_discrete <-
+    function(...) ggsci::scale_color_lancet()
+scale_fill_discrete <-
+    function(...) ggsci::scale_fill_lancet()
+```
+
+# Organize data
+
+Then for cognition, you could use the harmonized cognitive scores from Tim's group.  Those are here. 
+
+However, it's possible there is a lot of missingness in Tim's harmonized scores.  If so, then you could use individual tests from the larger UDS file.
+
+1.	PHC_MEM 		Harmonized Composite Memory Score 
+2.	PHC_EXF		Harmonized Composite Executive Function Score 
+3.	PHC_LAN		Harmonized Composite Language Score
+
+```{r}
+# For hippocampus volume from SCAN
+dd <- investigator_scan_mrisbm_nacc66 %>%
+  select(NACCID, DATE = SCANDT, HIPPOCAMPUS, ICV = CEREBRUMTCV) %>%
+  full_join(investigator_scan_taupetnpdka_nacc66 %>%
+    select(NACCID, DATE = SCANDATE, Tau_PET = META_TEMPORAL_SUVR, TRACER) %>%
+    mutate(TRACER = case_when(
+      TRACER == 1 ~ 'FDG',
+      TRACER == 2 ~ 'PIB',
+      TRACER == 3 ~ 'Florbetapir',
+      TRACER == 4 ~ 'Florbetaben',
+      TRACER == 5 ~ 'NAV4694',
+      TRACER == 6 ~ 'Flortaucipir',
+      TRACER == 7 ~ 'MK6240',
+      TRACER == 8 ~ 'PI2620',
+      TRACER == 9 ~ 'GTP1',
+      TRACER == 99 ~ 'Unknown') %>% as.factor()) %>%
+    rename(Tau_TRACER = TRACER),
+    by = c('NACCID', 'DATE')) %>%
+  full_join(investigator_scan_amyloidpetgaain_nacc66 %>%
+    select(NACCID, DATE = SCANDATE, AMYLOID_STATUS, CENTILOIDS, TRACER) %>%
+    mutate(TRACER = case_when(
+      TRACER == 1 ~ 'FDG',
+      TRACER == 2 ~ 'PIB',
+      TRACER == 3 ~ 'Florbetapir',
+      TRACER == 4 ~ 'Florbetaben',
+      TRACER == 5 ~ 'NAV4694',
+      TRACER == 6 ~ 'Flortaucipir',
+      TRACER == 7 ~ 'MK6240',
+      TRACER == 8 ~ 'PI2620',
+      TRACER == 9 ~ 'GTP1',
+      TRACER == 99 ~ 'Unknown') %>% as.factor()) %>%
+    rename(Amyloid_TRACER = TRACER),
+    by = c('NACCID', 'DATE')) %>%
+  full_join(NACC_ADSP_PHC_Cognition_2024 %>%
+    select(NACCID, NACCVNUM, PHC_MEM, PHC_EXF, PHC_LAN) %>%
+    left_join(investigator_ftldlbd_nacc66 %>%
+      mutate(DATE = as.Date(paste(VISITYR, VISITMO, VISITDAY, sep='-'))) %>%
+      select(NACCID, NACCVNUM, DATE),
+      by = c('NACCID', 'NACCVNUM')),
+    by = c('NACCID', 'DATE')) %>%
+  left_join(investigator_ftldlbd_nacc66 %>%
+    mutate(BIRTHDATE = as.Date(paste(BIRTHYR, BIRTHMO, 15, sep = '-'))) %>%
+    filter(!is.na(BIRTHDATE)) %>%
+    arrange(NACCID, NACCVNUM) %>%
+    select(NACCID, BIRTHDATE, RACE, SEX, EDUC, HISPANIC) %>%
+    group_by(NACCID) %>%
+    fill(.direction = "updown") %>%
+    ungroup() %>%
+    filter(!duplicated(NACCID)),
+    by = 'NACCID') %>%
+  mutate(Age = as.numeric(DATE - BIRTHDATE)/365.25) %>%
+  group_by(NACCID) %>%
+  mutate(ICV = mean(ICV, na.rm = TRUE)) %>%
+  ungroup() %>%
+  arrange(NACCID, DATE)
+
+dd_cross <- dd %>%
+  group_by(NACCID) %>%
+  fill(everything(), .direction = "updown") %>%
+  filter(!duplicated(NACCID)) %>%
+  mutate(
+    SEX = case_when(is.na(SEX) ~ " Missing", TRUE ~ SEX) %>%
+      factor(levels = c(" Male", "Female", " Missing"))
+  ) %>%
+  ungroup()
+
+# harmonize tau PET data ----
+tmp <- dd %>% filter(!is.na(Tau_PET) & !is.na(Age))
+tau_PET_fit <- lme(Tau_PET ~ Tau_TRACER + SEX + Age, data = tmp,
+  random = ~ 1 | NACCID,
+  weights = varIdent(form = ~ 1 | Tau_TRACER))
+tmp$Tau_PET_ComBat <- ComBat(Tau_PET ~ Tau_TRACER + SEX + Age, data = tmp,
+  random1 = ~ 1 | NACCID, random2 = NULL,
+  weights = varIdent(form = ~ 1 | Tau_TRACER))
+
+dd <- dd %>%
+  left_join(tmp %>% select(NACCID, DATE, Tau_PET_ComBat), 
+    by = c('NACCID', 'DATE'))
+```
+
+# Baseline characteristics tables
+
+```{r}
+mylabels = list(
+  PHC_MEM = 'Harmonized Memory', 
+  PHC_EXF = 'Harmonized Exec Function', 
+  PHC_LAN = 'Harmonized Language',
+  EDUC = 'Education (yrs)',
+  Age = 'Age (yrs)')
+```
+
+## All CLARiTI participants
+```{r results = 'asis', include = TRUE}
+tableby(SEX ~ Age + RACE + HISPANIC + 
+    AMYLOID_STATUS + CENTILOIDS +
+    HIPPOCAMPUS + Tau_PET + Tau_TRACER +
+    PHC_MEM + PHC_EXF + PHC_LAN + EDUC, 
+  data = dd_cross %>% filter(SEX != ' Missing')) %>%
+  summary(labelTranslations = mylabels, digits = 1)
+```
+
+## CLARiTI participants with hippocampal volumes
+```{r results = 'asis', include = TRUE}
+tableby(SEX ~ Age + RACE + HISPANIC + 
+    AMYLOID_STATUS + CENTILOIDS +
+    HIPPOCAMPUS + Tau_PET + Tau_TRACER +
+    PHC_MEM + PHC_EXF + PHC_LAN + EDUC, 
+  data = dd_cross %>% filter(!is.na(HIPPOCAMPUS) & SEX != ' Missing')) %>%
+  summary(labelTranslations = mylabels, digits = 1)
+```
+
+## CLARiTI participants with tau PET
+```{r results = 'asis', include = TRUE}
+tableby(SEX ~ Age + RACE + HISPANIC + 
+    AMYLOID_STATUS + CENTILOIDS +
+    HIPPOCAMPUS + Tau_PET + Tau_TRACER +
+    PHC_MEM + PHC_EXF + PHC_LAN + EDUC, 
+  data = dd_cross %>% filter(!is.na(Tau_PET) & SEX != ' Missing')) %>%
+  summary(labelTranslations = mylabels, digits = 1)
+```
+
+## CLARiTI participants with amyloid PET
+```{r results = 'asis', include = TRUE}
+tableby(SEX ~ Age + RACE + HISPANIC + 
+    AMYLOID_STATUS + CENTILOIDS +
+    HIPPOCAMPUS + Tau_PET + Tau_TRACER +
+    PHC_MEM + PHC_EXF + PHC_LAN + EDUC, 
+  data = dd_cross %>% filter(!is.na(CENTILOIDS) & SEX != ' Missing')) %>%
+  summary(labelTranslations = mylabels, digits = 1)
+```
+
+# Summary plots
+
+```{r CLARiTI-spaghetti, fig.cap='Spaghetti of selected outcomes by age and race'}
+dd %>% 
+  select(NACCID, Age, RACE, HIPPOCAMPUS, Tau_PET_ComBat, CENTILOIDS,
+    PHC_MEM, PHC_EXF, PHC_LAN) %>%
+  pivot_longer(HIPPOCAMPUS:PHC_LAN) %>%
+  filter(!is.na(value) & !is.na(RACE)) %>%
+ggplot(aes(x=Age, y=value, color=RACE)) +
+  geom_point(alpha=0.1) +
+  geom_line(aes(group = NACCID), alpha=0.01) +
+  facet_wrap(vars(name), scales = 'free_y') +
+  guides(colour = guide_legend(override.aes = list(alpha=1))) +
+  ylab('')
+```
+
+```{r CLARiTI-loess, fig.cap='Locally weighted scatterplot smooths (LOWESS) of selected outcomes by age and race'}
+dd %>% 
+  select(NACCID, Age, RACE, HIPPOCAMPUS, Tau_PET_ComBat, CENTILOIDS,
+    PHC_MEM, PHC_EXF, PHC_LAN) %>%
+  pivot_longer(HIPPOCAMPUS:PHC_LAN) %>%
+  filter(!is.na(value) & !is.na(RACE)) %>%
+ggplot(aes(x=Age, y=value, color=RACE)) +
+  geom_smooth(method = 'lm') +
+  # geom_smooth(method = 'gam', formula = y ~ s(x, bs = "cs", fx = TRUE, k = 1)) +
+  facet_wrap(vars(name), scales = 'free_y') +
+  guides(colour = guide_legend(override.aes = list(alpha=1))) +
+  ylab('')
+```
+
+# ComBat Harmonization of tau PET (tracers)
+
+```{r}
+summary(tau_PET_fit)
+ggplot(dd %>% filter(!is.na(Tau_PET_ComBat)), 
+  aes(x = Tau_PET, y = Tau_PET_ComBat, color = Tau_TRACER)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = 'dashed')
+```

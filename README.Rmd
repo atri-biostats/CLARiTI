@@ -17,7 +17,7 @@ always_allow_html: true
 
 To install `CLARiTI`:
 
-* In R, run ``r paste0("install.packages(\"path/to/", pkgFilename, "\", repos = NULL, type = \"source\")")``
+* In R, run ``r paste0("install.packages(\"path/to/", paste0('CLARiTI_', packageVersion('CLARiTI'), '.tar.gz'), "\", repos = NULL, type = \"source\")")``
 
 The script to build this R package can be found in [tools](https://github.com/atri-biostats/CLARiTI/tree/main/tools).
 

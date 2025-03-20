@@ -21,7 +21,7 @@ To install `CLARiTI`:
 
 The script to build this R package can be found in [tools](https://github.com/atri-biostats/CLARiTI/tree/main/tools).
 
-The code below demonstrates how to use data in the `CLARiTI` package and @R to derive some basic summaries.
+The code below demonstrates how to use data in the `CLARiTI` package and `R` [@R] to derive some basic summaries.
 
 ```{r, child='man/rmd/CLARiTI-Summaries-child.Rmd'}
 ```

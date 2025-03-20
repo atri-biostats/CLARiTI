@@ -7,7 +7,7 @@ output:
 bibliography: references.bib  
 urlcolor: blue
 vignette: >
-  %\VignetteIndexEntry{HABS-HD Summaries}
+  %\VignetteIndexEntry{CLARiTI Summaries}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

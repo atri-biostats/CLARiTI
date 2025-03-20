@@ -24,7 +24,7 @@ The script to build this R package can be found in
 [tools](https://github.com/atri-biostats/CLARiTI/tree/main/tools).
 
 The code below demonstrates how to use data in the `CLARiTI` package and
-R Core Team (2024) to derive some basic summaries.
+`R` (R Core Team 2024) to derive some basic summaries.
 
 # Organize data
 

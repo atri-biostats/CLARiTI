@@ -22,7 +22,8 @@ csv_files <- grep("_Build", csv_files, value = TRUE, invert = TRUE, fixed = TRUE
 for (file_name in csv_files) {
   df_name <- basename(file_name) %>%
     gsub(pattern = "\\.csv$", replacement = "") %>%
-    gsub(pattern = ' ', replacement = '_')
+    gsub(pattern = ' ', replacement = '_') %>%
+    gsub(pattern = '-', replacement = '_')
   df <- readr::read_csv(file_name)
   assign(df_name, df)
   # using defaults from usethis::use_data
@@ -38,7 +39,8 @@ txt_files <- grep("_Build", txt_files, value = TRUE, invert = TRUE, fixed = TRUE
 for (file_name in txt_files) {
   df_name <- basename(file_name) %>%
     gsub(pattern = "\\.txt$", replacement = "") %>%
-    gsub(pattern = ' ', replacement = '_')
+    gsub(pattern = ' ', replacement = '_') %>%
+    gsub(pattern = '-', replacement = '_')
   df <- readr::read_csv(file_name)
   assign(df_name, df)
   # using defaults from usethis::use_data
@@ -58,7 +60,8 @@ dict_files <- c(
 for (file_name in dict_files) {
   df_name <- basename(file_name) %>%
     gsub(pattern = "\\.xlsx$", replacement = "") %>%
-    gsub(pattern = ' ', replacement = '_')
+    gsub(pattern = ' ', replacement = '_') %>%
+    gsub(pattern = '-', replacement = '_')
   df <- readxl::read_excel(file_name)
   assign(df_name, df)
   # using defaults from usethis::use_data

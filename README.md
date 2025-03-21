@@ -401,7 +401,7 @@ ggplot(aes(x=Age, y=value, color=RACE)) +
 
 <div class="figure">
 
-<img src="README_files/figure-gfm/CLARiTI-spaghetti-1.png" alt="Spaghetti of selected outcomes by age and race" width="100%" />
+<img src="man/figures/README-CLARiTI-spaghetti-1.png" alt="Spaghetti of selected outcomes by age and race" width="100%" />
 <p class="caption">
 
 Spaghetti of selected outcomes by age and race
@@ -426,11 +426,10 @@ ggplot(aes(x=Age, y=value, color=RACE)) +
 
 <div class="figure">
 
-<img src="README_files/figure-gfm/CLARiTI-loess-1.png" alt="Locally weighted scatterplot smooths (LOWESS) of selected outcomes by age and race" width="100%" />
+<img src="man/figures/README-CLARiTI-loess-1.png" alt="Linear trends of selected outcomes by age and race" width="100%" />
 <p class="caption">
 
-Locally weighted scatterplot smooths (LOWESS) of selected outcomes by
-age and race
+Linear trends of selected outcomes by age and race
 </p>
 
 </div>
@@ -479,7 +478,7 @@ ggplot(dd %>% filter(!is.na(Tau_PET_ComBat)),
   geom_abline(intercept = 0, slope = 1, linetype = 'dashed')
 ```
 
-<img src="README_files/figure-gfm/unnamed-chunk-10-1.png" width="100%" />
+<img src="man/figures/README-tau-PET-ComBat-1.png" width="100%" />
 
 ## References
 
